@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 const app = express()
@@ -38,6 +38,7 @@ async function run() {
         // await client.connect();
         const couponsCollection = client.db('beverlyDB').collection('coupons');
         const apartmentCollection = client.db('beverlyDB').collection('apartment');
+        const agreementCollection = client.db('beverlyDB').collection('agreement');
 
 
         // coupon related api
@@ -56,9 +57,41 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/apartment-count', async(req, res) => {
+        app.patch('/apartment/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const updatedApartment = req.body;
+            const updateDoc = {
+                $set: {
+                    ...updatedApartment
+                }
+            }
+            const result = await apartmentCollection.updateOne(query, updateDoc);
+            res.send(result);
+        })
+
+        app.get('/apartment-count', async (req, res) => {
             const count = await apartmentCollection.countDocuments();
-            res.send({count});
+            res.send({ count });
+        })
+
+        // agreement related api
+        app.post('/agreement', async (req, res) => {
+            const agreement = req.body;
+
+            // check duplicate
+            const query = {
+                clientEmail: agreement.clientEmail,
+                apartmentId: agreement.apartmentId
+            }
+
+            const isExist = await agreementCollection.findOne(query);
+            if (isExist) {
+                return res.status(400).send({ message: 'Already booking' })
+            }
+
+            const result = await agreementCollection.insertOne(agreement);
+            res.send(result)
         })
 
 
