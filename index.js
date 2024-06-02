@@ -37,11 +37,19 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         // await client.connect();
         const couponsCollection = client.db('beverlyDB').collection('coupons');
+        const apartmentCollection = client.db('beverlyDB').collection('apartment');
 
 
         // coupon related api
         app.get('/coupons', async(req, res)=> {
             const result = await couponsCollection.find().toArray();
+            res.send(result);
+        })
+
+
+        // apartment related api
+        app.get('/apartment', async(req, res) =>{
+            const result = await apartmentCollection.find().toArray();
             res.send(result);
         })
 
