@@ -41,16 +41,24 @@ async function run() {
 
 
         // coupon related api
-        app.get('/coupons', async(req, res)=> {
+        app.get('/coupons', async (req, res) => {
             const result = await couponsCollection.find().toArray();
             res.send(result);
         })
 
 
         // apartment related api
-        app.get('/apartment', async(req, res) =>{
-            const result = await apartmentCollection.find().toArray();
+        app.get('/apartment', async (req, res) => {
+            const size = parseInt(req.query.size);
+            const page = parseInt(req.query.page) - 1
+            // console.log(size, page);
+            const result = await apartmentCollection.find().skip(size * page).limit(size).toArray();
             res.send(result);
+        })
+
+        app.get('/apartment-count', async(req, res) => {
+            const count = await apartmentCollection.countDocuments();
+            res.send({count});
         })
 
 
