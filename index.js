@@ -39,6 +39,7 @@ async function run() {
         const couponsCollection = client.db('beverlyDB').collection('coupons');
         const apartmentCollection = client.db('beverlyDB').collection('apartment');
         const agreementCollection = client.db('beverlyDB').collection('agreement');
+        const usersCollection = client.db('beverlyDB').collection('users');
 
 
         // coupon related api
@@ -75,6 +76,8 @@ async function run() {
             res.send({ count });
         })
 
+
+
         // agreement related api
         app.post('/agreement', async (req, res) => {
             const agreement = req.body;
@@ -94,6 +97,48 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/agreement', async (req, res) => {
+            const result = await agreementCollection.find().toArray();
+            res.send(result);
+        })
+
+
+
+
+        // user related api
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+
+
+            const query = { email: user?.email };
+            const isExist = await usersCollection.findOne(query);
+            if (isExist) {
+                return res.send({ message: "user is already exist", insertedId: null })
+            }
+
+            const result = await usersCollection.insertOne(user);
+            res.send(result);
+        })
+
+        app.get('/user/:email', async (req, res) => {
+            const email = req.params.email
+            const result = await usersCollection.findOne({ email })
+            res.send(result)
+        })
+
+        app.patch('/user/:email', async(req, res) => {
+            const email = req.params.email
+            const user = req.body
+            const filter = { email: email }
+            const options = { upsert: true }
+            const updateDoc = {
+                $set: {
+                    ...user
+                }
+            }
+            const result = await usersCollection.updateOne(filter, updateDoc, options)
+            res.send(result)
+        })
 
         // Send a ping to confirm a successful connection
         // await client.db("admin").command({ ping: 1 });
