@@ -58,18 +58,18 @@ async function run() {
             res.send(result);
         })
 
-        app.patch('/apartment/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: new ObjectId(id) }
-            const updatedApartment = req.body;
-            const updateDoc = {
-                $set: {
-                    ...updatedApartment
-                }
-            }
-            const result = await apartmentCollection.updateOne(query, updateDoc);
-            res.send(result);
-        })
+        // app.patch('/apartment/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     const query = { _id: new ObjectId(id) }
+        //     const updatedApartment = req.body;
+        //     const updateDoc = {
+        //         $set: {
+        //             ...updatedApartment
+        //         }
+        //     }
+        //     const result = await apartmentCollection.updateOne(query, updateDoc);
+        //     res.send(result);
+        // })
 
         app.get('/apartment-count', async (req, res) => {
             const count = await apartmentCollection.countDocuments();
@@ -102,6 +102,27 @@ async function run() {
             res.send(result);
         })
 
+        app.delete('/agreement/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await agreementCollection.deleteOne(query);
+            res.send(result);
+        })
+
+        app.patch('/agreement/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const updatedAgreement = req.body;
+            const options = { upsert: true }
+            const updateDoc = {
+                $set: {
+                    ...updatedAgreement,
+                }
+            }
+            const result = await agreementCollection.updateOne(query, updateDoc, options);
+            res.send(result);
+        })
+
 
 
 
@@ -126,8 +147,9 @@ async function run() {
             res.send(result)
         })
 
-        app.patch('/user/:email', async(req, res) => {
+        app.patch('/user/:email', async (req, res) => {
             const email = req.params.email
+            // console.log(email);
             const user = req.body
             const filter = { email: email }
             const options = { upsert: true }
@@ -138,6 +160,11 @@ async function run() {
             }
             const result = await usersCollection.updateOne(filter, updateDoc, options)
             res.send(result)
+        })
+
+        app.get('/users', async (req, res) => {
+            const result = await usersCollection.find().sort({ '_id': -1 }).toArray();
+            res.send(result);
         })
 
         // Send a ping to confirm a successful connection
