@@ -56,6 +56,12 @@ async function run() {
             res.send(result);
         })
 
+        app.post('/coupon', async (req, res) => {
+            const coupon = req.body;
+            const result = await couponsCollection.insertOne(coupon);
+            res.send(result)
+        })
+
 
         // apartment related api
         app.get('/apartment', async (req, res) => {
@@ -180,6 +186,11 @@ async function run() {
             const announcement = req.body;
             const result = await announcementCollection.insertOne(announcement);
             res.send(result)
+        })
+
+        app.get('/announcement', async (req, res) => {
+            const result = await usersCollection.find().sort({ '_id': -1 }).toArray();
+            res.send(result);
         })
 
         // Send a ping to confirm a successful connection
