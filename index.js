@@ -40,6 +40,7 @@ async function run() {
         const apartmentCollection = client.db('beverlyDB').collection('apartment');
         const agreementCollection = client.db('beverlyDB').collection('agreement');
         const usersCollection = client.db('beverlyDB').collection('users');
+        const announcementCollection = client.db('beverlyDB').collection('announcement');
 
 
         // coupon related api
@@ -165,6 +166,13 @@ async function run() {
         app.get('/users', async (req, res) => {
             const result = await usersCollection.find().sort({ '_id': -1 }).toArray();
             res.send(result);
+        })
+
+        // announcement related api
+        app.post('/announcement', async (req, res) => {
+            const announcement = req.body;
+            const result = await announcementCollection.insertOne(announcement);
+            res.send(result)
         })
 
         // Send a ping to confirm a successful connection
