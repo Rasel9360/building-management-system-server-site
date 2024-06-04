@@ -45,7 +45,14 @@ async function run() {
 
         // coupon related api
         app.get('/coupons', async (req, res) => {
-            const result = await couponsCollection.find().toArray();
+            const result = await couponsCollection.find().sort({ '_id': -1 }).toArray();
+            res.send(result);
+        })
+
+        app.delete('/coupon/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await couponsCollection.deleteOne(query);
             res.send(result);
         })
 
