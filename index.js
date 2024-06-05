@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5000;
 const app = express()
 
@@ -41,7 +42,28 @@ async function run() {
         const agreementCollection = client.db('beverlyDB').collection('agreement');
         const usersCollection = client.db('beverlyDB').collection('users');
         const announcementCollection = client.db('beverlyDB').collection('announcement');
+        const paymentsCollection = client.db('beverlyDB').collection('payments');
 
+
+        // paymentIntent related api
+        app.post('/create-payment-intent', async (req, res) => {
+            const { price } = req.body;
+            const paymentInt = parseInt(price * 100);
+            // console.log(paymentInt);
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: paymentInt,
+                currency: 'usd',
+                "payment_method_types": [
+                    "card"
+                ],
+            })
+
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
+
+        })
 
         // coupon related api
         app.get('/coupons', async (req, res) => {
