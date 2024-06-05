@@ -93,6 +93,13 @@ async function run() {
 
 
         // agreement related api
+
+        app.get('/agreement/:email', async (req, res) => {
+            const query = { clientEmail: req.params.email };
+            const result = await agreementCollection.find(query).toArray();
+            res.send(result);
+        })
+
         app.post('/agreement', async (req, res) => {
             const agreement = req.body;
 
@@ -189,7 +196,7 @@ async function run() {
         })
 
         app.get('/announcement', async (req, res) => {
-            const result = await usersCollection.find().sort({ '_id': -1 }).toArray();
+            const result = await announcementCollection.find().sort({ '_id': -1 }).toArray();
             res.send(result);
         })
 
