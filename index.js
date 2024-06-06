@@ -49,7 +49,7 @@ async function run() {
         app.post('/create-payment-intent', async (req, res) => {
             const { price } = req.body;
             const paymentInt = parseInt(price * 100);
-            // console.log(paymentInt);
+            console.log(paymentInt);
 
             const paymentIntent = await stripe.paymentIntents.create({
                 amount: paymentInt,
@@ -63,6 +63,26 @@ async function run() {
                 clientSecret: paymentIntent.client_secret,
             });
 
+        })
+
+        app.get('/payment/:email', async (req, res) => {
+            const email = req.params.email;
+            const month = req.query.month;
+            const query = { email: email }
+
+            if (month) {
+                const regex = new RegExp(`-${month.padStart(2, '0')}-`, 'i');
+                query.date = { $regex: regex }
+            }
+
+            const result = await paymentsCollection.find(query).sort({ '_id': -1 }).toArray();
+            res.send(result);
+        })
+
+        app.post('/payment', async (req, res) => {
+            const payment = req.body;
+            const result = await paymentsCollection.insertOne(payment);
+            res.send(result);
         })
 
         // coupon related api
@@ -165,6 +185,12 @@ async function run() {
             const result = await agreementCollection.updateOne(query, updateDoc, options);
             res.send(result);
         })
+
+        // app.put('/agreement/:id', async(req, res) => {
+        //     const id = req.params.id;
+        //     const query = {_id: new ObjectId(id)};
+        //     const agreement = req.body
+        // })
 
 
 
