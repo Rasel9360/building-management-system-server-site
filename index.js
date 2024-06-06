@@ -80,6 +80,16 @@ async function run() {
             }
             next()
         }
+        const verifyMember = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            const isAdmin = user?.role === 'Member';
+            if (!isAdmin) {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
+            next()
+        }
 
         // paymentIntent related api
         app.post('/create-payment-intent', async (req, res) => {
@@ -101,7 +111,7 @@ async function run() {
 
         })
 
-        app.get('/payment/:email', async (req, res) => {
+        app.get('/payment/:email', verifyToken, verifyMember, async (req, res) => {
             const email = req.params.email;
             const month = req.query.month;
             const query = { email: email }
@@ -127,14 +137,14 @@ async function run() {
             res.send(result);
         })
 
-        app.delete('/coupon/:id', async (req, res) => {
+        app.delete('/coupon/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await couponsCollection.deleteOne(query);
             res.send(result);
         })
 
-        app.post('/coupon', async (req, res) => {
+        app.post('/coupon', verifyToken, verifyAdmin, async (req, res) => {
             const coupon = req.body;
             const result = await couponsCollection.insertOne(coupon);
             res.send(result)
@@ -172,7 +182,7 @@ async function run() {
 
         // agreement related api
 
-        app.get('/agreement/:email', async (req, res) => {
+        app.get('/agreement/:email', verifyToken, verifyMember, async (req, res) => {
             const query = { clientEmail: req.params.email };
             const result = await agreementCollection.find(query).toArray();
             res.send(result);
@@ -196,12 +206,12 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/agreement', async (req, res) => {
+        app.get('/agreement', verifyToken, verifyAdmin, async (req, res) => {
             const result = await agreementCollection.find().toArray();
             res.send(result);
         })
 
-        app.delete('/agreement/:id', async (req, res) => {
+        app.delete('/agreement/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await agreementCollection.deleteOne(query);
@@ -252,7 +262,7 @@ async function run() {
             res.send(result)
         })
 
-        app.patch('/user/:email', async (req, res) => {
+        app.patch('/user/:email', verifyToken, verifyAdmin, async (req, res) => {
             const email = req.params.email
             // console.log(email);
             const user = req.body
@@ -273,7 +283,7 @@ async function run() {
         })
 
         // announcement related api
-        app.post('/announcement', async (req, res) => {
+        app.post('/announcement', verifyToken, verifyAdmin, async (req, res) => {
             const announcement = req.body;
             const result = await announcementCollection.insertOne(announcement);
             res.send(result)
@@ -282,6 +292,15 @@ async function run() {
         app.get('/announcement', async (req, res) => {
             const result = await announcementCollection.find().sort({ '_id': -1 }).toArray();
             res.send(result);
+        })
+
+        // admin stat related api
+        app.get('/admin-stat', async(req, res) => {
+            const totalApartment = await apartmentCollection.countDocuments();
+            const totalUser = await usersCollection.countDocuments({role: 'User'});
+            const totalMember = await usersCollection.countDocuments({role: 'Member'});
+            
+            res.send({totalApartment, totalUser, totalMember})
         })
 
         // Send a ping to confirm a successful connection
