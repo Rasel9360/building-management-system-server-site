@@ -160,18 +160,18 @@ async function run() {
             res.send(result);
         })
 
-        // app.patch('/apartment/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     const query = { _id: new ObjectId(id) }
-        //     const updatedApartment = req.body;
-        //     const updateDoc = {
-        //         $set: {
-        //             ...updatedApartment
-        //         }
-        //     }
-        //     const result = await apartmentCollection.updateOne(query, updateDoc);
-        //     res.send(result);
-        // })
+        app.patch('/apartment/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const updatedApartment = req.body;
+            const updateDoc = {
+                $set: {
+                    ...updatedApartment
+                }
+            }
+            const result = await apartmentCollection.updateOne(query, updateDoc);
+            res.send(result);
+        })
 
         app.get('/apartment-count', async (req, res) => {
             const count = await apartmentCollection.countDocuments();
@@ -295,12 +295,19 @@ async function run() {
         })
 
         // admin stat related api
-        app.get('/admin-stat', async(req, res) => {
+        app.get('/admin-stat', verifyToken, verifyAdmin, async (req, res) => {
             const totalApartment = await apartmentCollection.countDocuments();
-            const totalUser = await usersCollection.countDocuments({role: 'User'});
-            const totalMember = await usersCollection.countDocuments({role: 'Member'});
-            
-            res.send({totalApartment, totalUser, totalMember})
+            const totalUser = await usersCollection.countDocuments({ role: 'User' });
+            const totalMember = await usersCollection.countDocuments({ role: 'Member' });
+            const availableRoom = await apartmentCollection.countDocuments({ status: 'For Rent' });
+            const agreementRoom = await agreementCollection.countDocuments();
+            const totalRoom = availableRoom + agreementRoom;
+            const percentageAvailableRooms = (availableRoom / totalRoom) * 100;
+            const percentageAgreementRooms = (agreementRoom / totalRoom) * 100;
+            const toFixedPercentageAvailableRooms = percentageAvailableRooms.toFixed(2)
+            const toFixedPercentageAgreementRooms = percentageAgreementRooms.toFixed(2)
+
+            res.send({ totalApartment, totalUser, totalMember, toFixedPercentageAvailableRooms, toFixedPercentageAgreementRooms })
         })
 
         // Send a ping to confirm a successful connection
